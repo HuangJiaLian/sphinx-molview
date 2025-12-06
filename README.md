@@ -20,7 +20,7 @@ pip install sphinx-molview
 
 Or install from source:
 ```bash
-pip install git+https://github.com/huangchieh/sphinx-molview.git
+pip install git+https://github.com/HuangJiaLian/sphinx-molview.git
 ```
 
 For local development:
