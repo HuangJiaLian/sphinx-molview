@@ -16,11 +16,7 @@ A Sphinx extension for interactive 3D molecular visualisation using 3Dmol.js.
 
 ## Installation
 
-```bash
-pip install sphinx-molview
-```
-
-Or install from source:
+Install from source:
 ```bash
 pip install git+https://github.com/HuangJiaLian/sphinx-molview.git
 ```
@@ -65,7 +61,7 @@ Or in reStructuredText:
 
 - `:caption:` - Caption text to display
 - `:height:` - Viewer height (default: "500px")
-- `:style:` - Visualization style: "ball-stick", "stick", "sphere", "line" (default: "ball-stick")
+- `:style:` - Visualisation style: "ball-stick", "stick", "sphere", "line" (default: "ball-stick")
 - `:showbox:` - Show unit cell box (default: true)
 - `:showcontrols:` - Show control buttons (default: true)
 - `:showhbonds:` - Show hydrogen bonds (default: false)
@@ -122,7 +118,7 @@ Use `|` in the caption to split titles for each structure.
 ### Compare two structures
 ```markdown
 \```{molview} initial.xyz final.xyz
-:caption: Before optimization | After optimization
+:caption: Before optimisation | After optimisation
 :showhbonds: true
 \```
 ```
@@ -143,7 +139,7 @@ Available views: `c`, `c*`, `b`, `b*`, `a`, `a*`
 - **Rotation**: Click and drag to rotate
 - **Zoom**: Scroll to zoom in/out
 - **Selection**: Click atoms to select (Shift+click for multiple)
-- **Delete**: Select atoms and click "Delete" button
+- **Delete**: Select atoms and click the "Delete" button
 - **Save**: Export modified structure (preserves format and metadata)
 - **View controls**: Buttons to view along crystal axes (a, b, c)
 
