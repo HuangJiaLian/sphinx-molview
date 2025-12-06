@@ -20,6 +20,7 @@
  *   fadeExtended: show extended atoms with reduced opacity (default: false)
  *   zoom: zoom level multiplier (default: 1.0, larger = zoom out)
  *   showBorder: show border around canvas (default: true)
+ *   view: initial view direction: "c", "c*", "b", "b*", "a", "a*" (default: default 3Dmol view)
  */
 
 // Draw hydrogen bonds between atoms, excluding deleted atoms
@@ -264,7 +265,8 @@ function createMolViewer(containerId, fileUrl, options = {}) {
         extendZ: parseFloat(options.extendZ) || 0,
         fadeExtended: options.fadeExtended === true,  // default false
         zoom: parseFloat(options.zoom) || 1.0,
-        showBorder: options.showBorder !== false  // default true
+        showBorder: options.showBorder !== false,  // default true
+        view: options.view || ''  // initial view direction
     };
 
     const container = document.getElementById(containerId);
@@ -290,7 +292,7 @@ function createMolViewer(containerId, fileUrl, options = {}) {
             <span id="${containerId}_selection_info" style="margin-left: 6px; color: #666; font-size: 12px;"></span>
         </div>`;
     }
-    const borderStyle = opts.showBorder ? 'border: 1px solid #ccc; box-sizing: border-box;' : '';
+    const borderStyle = opts.showBorder ? 'border: 1px solid #ccc; box-sizing: border-box; overflow: hidden;' : 'overflow: hidden;';
     html += `<div id="${containerId}_canvas" style="width: 100%; height: ${opts.height}; position: relative; ${borderStyle}">`;
     if (opts.caption) {
         html += `<div style="position: absolute; top: 10px; left: 10px; z-index: 100; background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; border-radius: 4px; font-size: 14px; pointer-events: none;">${opts.caption}</div>`;
@@ -515,6 +517,9 @@ function createMolViewer(containerId, fileUrl, options = {}) {
             viewer.zoom(4.0 / opts.zoom);  // Apply zoom (larger zoom value = zoom out more)
             viewer.render();
             const defaultView = viewer.getView();
+            
+            // Will store the viewer object for setting initial view later
+            let initialView = opts.view;
             
             // Use lattice vectors we already parsed from XYZ, or try to get from crystal data
             let latticeVecs = latticeVectors;  // Already parsed from Lattice="..." string
@@ -778,5 +783,22 @@ function createMolViewer(containerId, fileUrl, options = {}) {
                     URL.revokeObjectURL(url);
                 }
             };
+            
+            // Apply initial view if specified
+            if (initialView) {
+                // Map crystallographic notation to internal view names
+                const viewMap = {
+                    'c': 'top',
+                    'c*': 'bottom',
+                    'b': 'front',
+                    'b*': 'back',
+                    'a': 'right',
+                    'a*': 'left'
+                };
+                const mappedView = viewMap[initialView];
+                if (mappedView) {
+                    window.molViewers[containerId].setView(mappedView);
+                }
+            }
         });
 }

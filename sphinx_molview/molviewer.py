@@ -55,6 +55,7 @@ class MolViewDirective(SphinxDirective):
         'fadeextended': directives.unchanged,
         'zoom': directives.unchanged,
         'showborder': directives.unchanged,
+        'view': directives.unchanged,
     }
 
     def resolve_path(self, path):
@@ -98,6 +99,7 @@ class MolViewDirective(SphinxDirective):
         fadeextended = self.options.get('fadeextended', 'false').lower() == 'true'
         zoom = self.options.get('zoom', '1.0')
         showborder = self.options.get('showborder', 'true').lower() == 'true'
+        view = self.options.get('view', '')
 
         # Parse captions (split by | for multiple viewers)
         captions = [c.strip() for c in caption.split('|')] if caption else ['', '']
@@ -110,12 +112,13 @@ class MolViewDirective(SphinxDirective):
         extend_opt = f", extendX: {extendx}, extendY: {extendy}, extendZ: {extendz}, fadeExtended: {str(fadeextended).lower()}" if float(extendx) > 0 or float(extendy) > 0 or float(extendz) > 0 else ""
         zoom_opt = f", zoom: {zoom}"
         border_opt = f", showBorder: {str(showborder).lower()}"
+        view_opt = f", view: '{view}'" if view else ""
         
         if len(urls) == 1:
             # Single viewer
             viewer_id = f"molviewer_{uuid.uuid4().hex[:8]}"
             caption_opt = f", caption: '{captions[0]}'" if captions[0] else ""
-            opts = f"height: '{height}', style: '{style}', showBox: {str(showbox).lower()}, showControls: {str(showcontrols).lower()}, background: '{background}'{format_opt}{caption_opt}{hbond_opt}{extend_opt}{zoom_opt}{border_opt}"
+            opts = f"height: '{height}', style: '{style}', showBox: {str(showbox).lower()}, showControls: {str(showcontrols).lower()}, background: '{background}'{format_opt}{caption_opt}{hbond_opt}{extend_opt}{zoom_opt}{border_opt}{view_opt}"
 
             html = f'''
 <div id="{viewer_id}"></div>
@@ -131,8 +134,8 @@ createMolViewer("{viewer_id}", "{urls[0]}", {{{opts}}});
             caption_opt1 = f", caption: '{captions[0]}'" if captions[0] else ""
             caption_opt2 = f", caption: '{captions[1]}'" if len(captions) > 1 and captions[1] else ""
             
-            opts1 = f"height: '{height}', style: '{style}', showBox: {str(showbox).lower()}, showControls: {str(showcontrols).lower()}, background: '{background}'{format_opt}{caption_opt1}{hbond_opt}{extend_opt}{zoom_opt}{border_opt}"
-            opts2 = f"height: '{height}', style: '{style}', showBox: {str(showbox).lower()}, showControls: {str(showcontrols).lower()}, background: '{background}'{format_opt}{caption_opt2}{hbond_opt}{extend_opt}{zoom_opt}{border_opt}"
+            opts1 = f"height: '{height}', style: '{style}', showBox: {str(showbox).lower()}, showControls: {str(showcontrols).lower()}, background: '{background}'{format_opt}{caption_opt1}{hbond_opt}{extend_opt}{zoom_opt}{border_opt}{view_opt}"
+            opts2 = f"height: '{height}', style: '{style}', showBox: {str(showbox).lower()}, showControls: {str(showcontrols).lower()}, background: '{background}'{format_opt}{caption_opt2}{hbond_opt}{extend_opt}{zoom_opt}{border_opt}{view_opt}"
 
             html = f'''
 <div style="display: flex; gap: 10px; width: 100%;">

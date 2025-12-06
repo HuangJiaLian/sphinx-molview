@@ -74,6 +74,7 @@ Or in reStructuredText:
 - `:fadeextended:` - Show extended atoms with reduced opacity (default: false)
 - `:zoom:` - Zoom level multiplier (default: 1.0, larger values zoom out more)
 - `:showborder:` - Show border around canvas (default: true)
+- `:view:` - Initial view direction: "c", "c*", "b", "b*", "a", "a*"
 - `:format:` - Force file format (auto-detected if not specified)
 
 ## Side-by-side viewing
@@ -123,6 +124,17 @@ Use `|` in the caption to split titles for each structure.
 :showhbonds: true
 \```
 ```
+
+### Set initial viewing angle
+```markdown
+\```{molview} structure.xyz
+:caption: View along b-axis
+:view: b
+:zoom: 1.2
+\```
+```
+
+Available views: `c`, `c*`, `b`, `b*`, `a`, `a*`
 
 ## Interactive Features
 
