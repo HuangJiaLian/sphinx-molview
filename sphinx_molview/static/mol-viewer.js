@@ -290,7 +290,7 @@ function createMolViewer(containerId, fileUrl, options = {}) {
             <span id="${containerId}_selection_info" style="margin-left: 6px; color: #666; font-size: 12px;"></span>
         </div>`;
     }
-    const borderStyle = opts.showBorder ? 'border: 1px solid #ccc;' : '';
+    const borderStyle = opts.showBorder ? 'border: 1px solid #ccc; box-sizing: border-box;' : '';
     html += `<div id="${containerId}_canvas" style="width: 100%; height: ${opts.height}; position: relative; ${borderStyle}">`;
     if (opts.caption) {
         html += `<div style="position: absolute; top: 10px; left: 10px; z-index: 100; background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; border-radius: 4px; font-size: 14px; pointer-events: none;">${opts.caption}</div>`;
