@@ -1,6 +1,8 @@
 # sphinx-molview
 
-A Sphinx extension for interactive 3D molecular visualization using 3Dmol.js.
+A Sphinx extension for interactive 3D molecular visualisation using 3Dmol.js.
+
+![](https://raw.githubusercontent.com/HuangJiaLian/DataBase0/master/uploads/screenshot_251207_010223.png)
 
 ## Features
 
