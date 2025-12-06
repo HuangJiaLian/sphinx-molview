@@ -16,7 +16,10 @@
  *   hbondCutoff: H-bond distance cutoff in Angstroms (default: 3.5)
  *   extendX: extend structure periodically in X (a) direction, e.g., 0.3 extends 0.3 cell on each side (default: 0)
  *   extendY: extend structure periodically in Y (b) direction, e.g., 0.3 extends 0.3 cell on each side (default: 0)
+ *   extendZ: extend structure periodically in Z (c) direction, e.g., 0.3 extends 0.3 cell on each side (default: 0)
  *   fadeExtended: show extended atoms with reduced opacity (default: false)
+ *   zoom: zoom level multiplier (default: 1.0, larger = zoom out)
+ *   showBorder: show border around canvas (default: true)
  */
 
 // Draw hydrogen bonds between atoms, excluding deleted atoms
@@ -258,7 +261,10 @@ function createMolViewer(containerId, fileUrl, options = {}) {
         hbondCutoff: options.hbondCutoff || 3.5,
         extendX: parseFloat(options.extendX) || 0,
         extendY: parseFloat(options.extendY) || 0,
-        fadeExtended: options.fadeExtended === true  // default false
+        extendZ: parseFloat(options.extendZ) || 0,
+        fadeExtended: options.fadeExtended === true,  // default false
+        zoom: parseFloat(options.zoom) || 1.0,
+        showBorder: options.showBorder !== false  // default true
     };
 
     const container = document.getElementById(containerId);
@@ -284,7 +290,8 @@ function createMolViewer(containerId, fileUrl, options = {}) {
             <span id="${containerId}_selection_info" style="margin-left: 6px; color: #666; font-size: 12px;"></span>
         </div>`;
     }
-    html += `<div id="${containerId}_canvas" style="width: 100%; height: ${opts.height}; position: relative;">`;
+    const borderStyle = opts.showBorder ? 'border: 1px solid #ccc;' : '';
+    html += `<div id="${containerId}_canvas" style="width: 100%; height: ${opts.height}; position: relative; ${borderStyle}">`;
     if (opts.caption) {
         html += `<div style="position: absolute; top: 10px; left: 10px; z-index: 100; background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; border-radius: 4px; font-size: 14px; pointer-events: none;">${opts.caption}</div>`;
     }
@@ -351,10 +358,11 @@ function createMolViewer(containerId, fileUrl, options = {}) {
                 viewer.addUnitCell({box: {color: 'black'}, alabel: 'a', blabel: 'b', clabel: 'c'});
             }
             
-            // Extend structure periodically in X and Y if requested
-            if ((opts.extendX > 0 || opts.extendY > 0) && latticeVectors) {
+            // Extend structure periodically in X, Y, and Z if requested
+            if ((opts.extendX > 0 || opts.extendY > 0 || opts.extendZ > 0) && latticeVectors) {
                 const va = latticeVectors.a;
                 const vb = latticeVectors.b;
+                const vc = latticeVectors.c;
                 
                 // Get all atoms from original model
                 const model = viewer.getModel();
@@ -363,36 +371,74 @@ function createMolViewer(containerId, fileUrl, options = {}) {
                 // Generate periodic images
                 const images = [];
                 
-                // Determinant for fractional coordinate calculation
-                const det = va[0] * vb[1] - va[1] * vb[0];
+                // Calculate inverse matrix for 3D fractional coordinates
+                const det = va[0] * (vb[1] * vc[2] - vb[2] * vc[1]) - 
+                           va[1] * (vb[0] * vc[2] - vb[2] * vc[0]) + 
+                           va[2] * (vb[0] * vc[1] - vb[1] * vc[0]);
+                
                 if (Math.abs(det) > 1e-10) {
                     // For each atom, check if it's near a cell boundary
                     for (const atom of originalAtoms) {
-                        const fracA = (atom.x * vb[1] - atom.y * vb[0]) / det;
-                        const fracB = (va[0] * atom.y - va[1] * atom.x) / det;
+                        // Calculate 3D fractional coordinates
+                        const fracA = ((vb[1] * vc[2] - vb[2] * vc[1]) * atom.x + 
+                                      (va[2] * vc[1] - va[1] * vc[2]) * atom.y + 
+                                      (va[1] * vb[2] - va[2] * vb[1]) * atom.z) / det;
+                        const fracB = ((vb[2] * vc[0] - vb[0] * vc[2]) * atom.x + 
+                                      (va[0] * vc[2] - va[2] * vc[0]) * atom.y + 
+                                      (va[2] * vb[0] - va[0] * vb[2]) * atom.z) / det;
+                        const fracC = ((vb[0] * vc[1] - vb[1] * vc[0]) * atom.x + 
+                                      (va[1] * vc[0] - va[0] * vc[1]) * atom.y + 
+                                      (va[0] * vb[1] - va[1] * vb[0]) * atom.z) / det;
                         
                         // Check each neighboring cell direction
                         const shifts = [];
                         
-                        if (opts.extendX > 0 && fracA < opts.extendX) shifts.push([1, 0]);
-                        if (opts.extendX > 0 && fracA > (1 - opts.extendX)) shifts.push([-1, 0]);
-                        if (opts.extendY > 0 && fracB < opts.extendY) shifts.push([0, 1]);
-                        if (opts.extendY > 0 && fracB > (1 - opts.extendY)) shifts.push([0, -1]);
+                        // Face neighbors (X, Y, Z directions)
+                        if (opts.extendX > 0 && fracA < opts.extendX) shifts.push([1, 0, 0]);
+                        if (opts.extendX > 0 && fracA > (1 - opts.extendX)) shifts.push([-1, 0, 0]);
+                        if (opts.extendY > 0 && fracB < opts.extendY) shifts.push([0, 1, 0]);
+                        if (opts.extendY > 0 && fracB > (1 - opts.extendY)) shifts.push([0, -1, 0]);
+                        if (opts.extendZ > 0 && fracC < opts.extendZ) shifts.push([0, 0, 1]);
+                        if (opts.extendZ > 0 && fracC > (1 - opts.extendZ)) shifts.push([0, 0, -1]);
                         
-                        // Corners
+                        // Edge neighbors (combinations of 2 directions)
                         if (opts.extendX > 0 && opts.extendY > 0) {
-                            if (fracA < opts.extendX && fracB < opts.extendY) shifts.push([1, 1]);
-                            if (fracA < opts.extendX && fracB > (1 - opts.extendY)) shifts.push([1, -1]);
-                            if (fracA > (1 - opts.extendX) && fracB < opts.extendY) shifts.push([-1, 1]);
-                            if (fracA > (1 - opts.extendX) && fracB > (1 - opts.extendY)) shifts.push([-1, -1]);
+                            if (fracA < opts.extendX && fracB < opts.extendY) shifts.push([1, 1, 0]);
+                            if (fracA < opts.extendX && fracB > (1 - opts.extendY)) shifts.push([1, -1, 0]);
+                            if (fracA > (1 - opts.extendX) && fracB < opts.extendY) shifts.push([-1, 1, 0]);
+                            if (fracA > (1 - opts.extendX) && fracB > (1 - opts.extendY)) shifts.push([-1, -1, 0]);
+                        }
+                        if (opts.extendX > 0 && opts.extendZ > 0) {
+                            if (fracA < opts.extendX && fracC < opts.extendZ) shifts.push([1, 0, 1]);
+                            if (fracA < opts.extendX && fracC > (1 - opts.extendZ)) shifts.push([1, 0, -1]);
+                            if (fracA > (1 - opts.extendX) && fracC < opts.extendZ) shifts.push([-1, 0, 1]);
+                            if (fracA > (1 - opts.extendX) && fracC > (1 - opts.extendZ)) shifts.push([-1, 0, -1]);
+                        }
+                        if (opts.extendY > 0 && opts.extendZ > 0) {
+                            if (fracB < opts.extendY && fracC < opts.extendZ) shifts.push([0, 1, 1]);
+                            if (fracB < opts.extendY && fracC > (1 - opts.extendZ)) shifts.push([0, 1, -1]);
+                            if (fracB > (1 - opts.extendY) && fracC < opts.extendZ) shifts.push([0, -1, 1]);
+                            if (fracB > (1 - opts.extendY) && fracC > (1 - opts.extendZ)) shifts.push([0, -1, -1]);
                         }
                         
-                        for (const [ia, ib] of shifts) {
+                        // Corner neighbors (all 3 directions)
+                        if (opts.extendX > 0 && opts.extendY > 0 && opts.extendZ > 0) {
+                            if (fracA < opts.extendX && fracB < opts.extendY && fracC < opts.extendZ) shifts.push([1, 1, 1]);
+                            if (fracA < opts.extendX && fracB < opts.extendY && fracC > (1 - opts.extendZ)) shifts.push([1, 1, -1]);
+                            if (fracA < opts.extendX && fracB > (1 - opts.extendY) && fracC < opts.extendZ) shifts.push([1, -1, 1]);
+                            if (fracA < opts.extendX && fracB > (1 - opts.extendY) && fracC > (1 - opts.extendZ)) shifts.push([1, -1, -1]);
+                            if (fracA > (1 - opts.extendX) && fracB < opts.extendY && fracC < opts.extendZ) shifts.push([-1, 1, 1]);
+                            if (fracA > (1 - opts.extendX) && fracB < opts.extendY && fracC > (1 - opts.extendZ)) shifts.push([-1, 1, -1]);
+                            if (fracA > (1 - opts.extendX) && fracB > (1 - opts.extendY) && fracC < opts.extendZ) shifts.push([-1, -1, 1]);
+                            if (fracA > (1 - opts.extendX) && fracB > (1 - opts.extendY) && fracC > (1 - opts.extendZ)) shifts.push([-1, -1, -1]);
+                        }
+                        
+                        for (const [ia, ib, ic] of shifts) {
                             images.push({
                                 elem: atom.elem,
-                                x: atom.x + ia * va[0] + ib * vb[0],
-                                y: atom.y + ia * va[1] + ib * vb[1],
-                                z: atom.z + ia * va[2] + ib * vb[2]
+                                x: atom.x + ia * va[0] + ib * vb[0] + ic * vc[0],
+                                y: atom.y + ia * va[1] + ib * vb[1] + ic * vc[1],
+                                z: atom.z + ia * va[2] + ib * vb[2] + ic * vc[2]
                             });
                         }
                     }
@@ -466,7 +512,7 @@ function createMolViewer(containerId, fileUrl, options = {}) {
             });
 
             viewer.zoomTo();
-            viewer.zoom(4.0);  // Zoom in more for better default view
+            viewer.zoom(4.0 / opts.zoom);  // Apply zoom (larger zoom value = zoom out more)
             viewer.render();
             const defaultView = viewer.getView();
             

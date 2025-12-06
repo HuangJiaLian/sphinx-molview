@@ -43,6 +43,7 @@ In your MyST Markdown files:
 :caption: My structure
 :extendx: 0.2
 :extendy: 0.2
+:extendz: 0.2
 :showhbonds: true
 \```
 ```
@@ -54,6 +55,7 @@ Or in reStructuredText:
    :caption: My structure
    :extendx: 0.2
    :extendy: 0.2
+   :extendz: 0.2
    :showhbonds: true
 ```
 
@@ -68,7 +70,10 @@ Or in reStructuredText:
 - `:hbondcutoff:` - H-bond distance cutoff in Å (default: 3.5)
 - `:extendx:` - Extend structure in X (a) direction (e.g., 0.3 extends 0.3 cells on each side)
 - `:extendy:` - Extend structure in Y (b) direction
+- `:extendz:` - Extend structure in Z (c) direction
 - `:fadeextended:` - Show extended atoms with reduced opacity (default: false)
+- `:zoom:` - Zoom level multiplier (default: 1.0, larger values zoom out more)
+- `:showborder:` - Show border around canvas (default: true)
 - `:format:` - Force file format (auto-detected if not specified)
 
 ## Side-by-side viewing
@@ -103,9 +108,10 @@ Use `|` in the caption to split titles for each structure.
 ### Extended supercell
 ```markdown
 \```{molview} unit_cell.xyz
-:caption: 2x2 supercell
+:caption: 2x2x2 supercell
 :extendx: 0.5
 :extendy: 0.5
+:extendz: 0.5
 :fadeextended: true
 \```
 ```
