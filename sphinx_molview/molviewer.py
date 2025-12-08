@@ -123,7 +123,15 @@ class MolViewDirective(SphinxDirective):
             html = f'''
 <div id="{viewer_id}"></div>
 <script>
-createMolViewer("{viewer_id}", "{urls[0]}", {{{opts}}});
+(function() {{
+    if (typeof createMolViewer === 'function') {{
+        createMolViewer("{viewer_id}", "{urls[0]}", {{{opts}}});
+    }} else {{
+        document.addEventListener('DOMContentLoaded', function() {{
+            createMolViewer("{viewer_id}", "{urls[0]}", {{{opts}}});
+        }});
+    }}
+}})();
 </script>
 '''
         else:
@@ -143,8 +151,17 @@ createMolViewer("{viewer_id}", "{urls[0]}", {{{opts}}});
     <div id="{viewer_id2}" style="flex: 1; min-width: 0;"></div>
 </div>
 <script>
-createMolViewer("{viewer_id1}", "{urls[0]}", {{{opts1}}});
-createMolViewer("{viewer_id2}", "{urls[1]}", {{{opts2}}});
+(function() {{
+    if (typeof createMolViewer === 'function') {{
+        createMolViewer("{viewer_id1}", "{urls[0]}", {{{opts1}}});
+        createMolViewer("{viewer_id2}", "{urls[1]}", {{{opts2}}});
+    }} else {{
+        document.addEventListener('DOMContentLoaded', function() {{
+            createMolViewer("{viewer_id1}", "{urls[0]}", {{{opts1}}});
+            createMolViewer("{viewer_id2}", "{urls[1]}", {{{opts2}}});
+        }});
+    }}
+}})();
 </script>
 '''
         raw_node = nodes.raw('', html, format='html')

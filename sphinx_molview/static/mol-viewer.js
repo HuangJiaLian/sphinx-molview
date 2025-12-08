@@ -194,13 +194,13 @@ function poscarToXyz(poscarText) {
                       + lattice[0][2] * (lattice[1][0] * lattice[2][1] - lattice[1][1] * lattice[2][0]);
             const inv = [
                 [(lattice[1][1] * lattice[2][2] - lattice[1][2] * lattice[2][1]) / det,
-                 (lattice[0][2] * lattice[2][1] - lattice[0][1] * lattice[2][2]) / det,
-                 (lattice[0][1] * lattice[1][2] - lattice[0][2] * lattice[1][1]) / det],
-                [(lattice[1][2] * lattice[2][0] - lattice[1][0] * lattice[2][2]) / det,
-                 (lattice[0][0] * lattice[2][2] - lattice[0][2] * lattice[2][0]) / det,
-                 (lattice[0][2] * lattice[1][0] - lattice[0][0] * lattice[1][2]) / det],
-                [(lattice[1][0] * lattice[2][1] - lattice[1][1] * lattice[2][0]) / det,
-                 (lattice[0][1] * lattice[2][0] - lattice[0][0] * lattice[2][1]) / det,
+                 (lattice[1][2] * lattice[2][0] - lattice[1][0] * lattice[2][2]) / det,
+                 (lattice[1][0] * lattice[2][1] - lattice[1][1] * lattice[2][0]) / det],
+                [(lattice[2][1] * lattice[0][2] - lattice[2][2] * lattice[0][1]) / det,
+                 (lattice[2][2] * lattice[0][0] - lattice[2][0] * lattice[0][2]) / det,
+                 (lattice[2][0] * lattice[0][1] - lattice[2][1] * lattice[0][0]) / det],
+                [(lattice[0][1] * lattice[1][2] - lattice[0][2] * lattice[1][1]) / det,
+                 (lattice[0][2] * lattice[1][0] - lattice[0][0] * lattice[1][2]) / det,
                  (lattice[0][0] * lattice[1][1] - lattice[0][1] * lattice[1][0]) / det]
             ];
             const fx = inv[0][0] * x * scale + inv[0][1] * y * scale + inv[0][2] * z * scale;
@@ -382,14 +382,19 @@ function createMolViewer(containerId, fileUrl, options = {}) {
                     // For each atom, check if it's near a cell boundary
                     for (const atom of originalAtoms) {
                         // Calculate 3D fractional coordinates
+                        // fracA = (b x c) . r / det
                         const fracA = ((vb[1] * vc[2] - vb[2] * vc[1]) * atom.x + 
-                                      (va[2] * vc[1] - va[1] * vc[2]) * atom.y + 
-                                      (va[1] * vb[2] - va[2] * vb[1]) * atom.z) / det;
-                        const fracB = ((vb[2] * vc[0] - vb[0] * vc[2]) * atom.x + 
-                                      (va[0] * vc[2] - va[2] * vc[0]) * atom.y + 
-                                      (va[2] * vb[0] - va[0] * vb[2]) * atom.z) / det;
-                        const fracC = ((vb[0] * vc[1] - vb[1] * vc[0]) * atom.x + 
-                                      (va[1] * vc[0] - va[0] * vc[1]) * atom.y + 
+                                      (vb[2] * vc[0] - vb[0] * vc[2]) * atom.y + 
+                                      (vb[0] * vc[1] - vb[1] * vc[0]) * atom.z) / det;
+                        
+                        // fracB = (c x a) . r / det
+                        const fracB = ((vc[1] * va[2] - vc[2] * va[1]) * atom.x + 
+                                      (vc[2] * va[0] - vc[0] * va[2]) * atom.y + 
+                                      (vc[0] * va[1] - vc[1] * va[0]) * atom.z) / det;
+
+                        // fracC = (a x b) . r / det
+                        const fracC = ((va[1] * vb[2] - va[2] * vb[1]) * atom.x + 
+                                      (va[2] * vb[0] - va[0] * vb[2]) * atom.y + 
                                       (va[0] * vb[1] - va[1] * vb[0]) * atom.z) / det;
                         
                         // Check each neighboring cell direction
