@@ -12,6 +12,7 @@ A Sphinx extension for interactive 3D molecular visualisation using 3Dmol.js.
 - **Atom manipulation**: Select, delete atoms, and save modified structures
 - **POSCAR support**: Preserves selective dynamics flags (T/F) when saving
 - **Periodic extension**: Extend structures along lattice vectors
+- **Hydrate cage visualization**: Detect and color small and large water cages
 - **Side-by-side comparison**: Display two structures simultaneously
 
 ## Installation
@@ -73,6 +74,11 @@ Or in reStructuredText:
 - `:zoom:` - Zoom level multiplier (default: 1.0, larger values zoom out more)
 - `:showborder:` - Show border around canvas (default: true)
 - `:view:` - Initial view direction: "c", "c*", "b", "b*", "a", "a*"
+- `:showcage:` - Initially show hydrate cages: "small", "large", "both", or "false" (default: false)
+- `:smallcagecolor:` - Small-cage tile color as a hex value (default: "#4da6ff")
+- `:largecagecolor:` - Large-cage tile color as a hex value (default: "#ff9f43")
+- `:cageopacity:` - Cage tile opacity from 0 to 1 (default: 0.5)
+- `:cagestyle:` - Cage rendering: "both", "lines", or "tiles" (default: "both")
 - `:format:` - Force file format (auto-detected if not specified)
 
 ## Side-by-side viewing
@@ -133,6 +139,29 @@ Use `|` in the caption to split titles for each structure.
 ```
 
 Available views: `c`, `c*`, `b`, `b*`, `a`, `a*`
+
+### Show hydrate cages
+```markdown
+\```{molview} sII-hydrate.xyz
+:showcage: both
+:smallcagecolor: 4da6ff
+:largecagecolor: ff9f43
+:cageopacity: 0.5
+:cagestyle: both
+\```
+```
+
+For periodic hydrate structures, the viewer detects `5^12` small cages and
+`5^12 6^4` large cages from the water-oxygen network. When cages are detected,
+the toolbar provides independent checkboxes and color pickers for both types,
+plus a selector for tiles with edges, edges only, or tiles only. Cage faces
+have thicker, darkened solid outlines. For sII slabs with a vacuum axis, intact cages
+define the sII orientation and partially terminated surface cages are completed
+as visualization geometry; no atoms are added to the molecular model.
+
+The cage edit selector can hide an individual face or edge by clicking it.
+`Reset cage` restores all hidden cage geometry. These edits are visual only and
+do not change or delete atoms in the molecular structure.
 
 ## Interactive Features
 
